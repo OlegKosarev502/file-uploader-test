@@ -24,12 +24,25 @@ app.get("/", (_req, res) => {
   res.send("Ready!");
 });
 
-app.post("/upload", upload.array("FILES", 5), (req, res) => {
-  if (req.files) {
-    res.status(200).json({ message: "Uploaded successfully!" });
-  } else {
-    res.status(400).json({ message: "Upload failed..." });
+app.post("/upload", upload.single("FILE"), (req, res) => {
+  if (req.file) {
+    if (req.file.originalname === "1.png") {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          res.status(200).json({ message: "Uploaded successfully!" });
+          resolve();
+        }, 2000);
+      });
+    }
+
+    if (req.file.originalname === "2.png") {
+      res.status(500).json({ message: "Upload failed..." });
+    }
+
+    return res.status(200).json({ message: "Uploaded successfully!" });
   }
+
+  return res.status(400).json({ message: "Upload failed..." });
 });
 
 app.delete("/delete", (req, res) => {
@@ -37,11 +50,10 @@ app.delete("/delete", (req, res) => {
 
   fs.unlink(`uploads/${fileName}`, (err) => {
     if (err) {
-      res.status(400).json({ message: "Failed to delete file..." });
-      return;
+      return res.status(400).json({ message: "Failed to delete file..." });
     }
 
-    res.status(200).json({ message: "Successfully deleted!" });
+    return res.status(200).json({ message: "Successfully deleted!" });
   });
 });
 
