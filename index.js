@@ -1,11 +1,29 @@
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+
 const fs = require("fs");
+const path = require("path");
+
+const storagePath = "uploads";
+
+if (!fs.existsSync(storagePath)) {
+  fs.mkdirSync(storagePath);
+} else {
+  fs.readdir(storagePath, (err, files) => {
+    if (err) throw err;
+
+    for (const file of files) {
+      fs.unlink(path.join(storagePath, file), (err) => {
+        if (err) throw err;
+      });
+    }
+  });
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
-    cb(null, "uploads");
+    cb(null, storagePath);
   },
   filename: (_req, file, cb) => {
     cb(null, file.originalname);
@@ -25,30 +43,27 @@ app.get("/", (_req, res) => {
 });
 
 app.post("/upload", upload.single("FILE"), (req, res) => {
-  if (req.file) {
-    if (req.file.originalname === "1.png") {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          res.status(200).json({ message: "Uploaded successfully!" });
-          resolve();
-        }, 2000);
-      });
-    }
-
-    if (req.file.originalname === "2.png") {
-      res.status(500).json({ message: "Upload failed..." });
-    }
-
-    return res.status(200).json({ message: "Uploaded successfully!" });
+  if (!req.file) {
+    return res.status(400).json({ message: "Upload failed..." });
   }
 
-  return res.status(400).json({ message: "Upload failed..." });
+  // const fileName = req.file.originalname;
+
+  // req.on("close", () => {
+  //   console.log(`req aborted: ${fileName}`);
+  // });
+
+  // if (fileName === "1.png") {
+  //   return res.status(400).json({ message: "Upload failed..." });
+  // }
+
+  return res.status(200).json({ message: "Uploaded successfully!" });
 });
 
 app.delete("/delete", (req, res) => {
   const fileName = req.body.fileName;
 
-  fs.unlink(`uploads/${fileName}`, (err) => {
+  fs.unlink(path.join(storagePath, fileName), (err) => {
     if (err) {
       return res.status(400).json({ message: "Failed to delete file..." });
     }
