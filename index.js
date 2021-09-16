@@ -5,6 +5,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 
+const fieldName = "file";
 const storagePath = "uploads";
 
 if (!fs.existsSync(storagePath)) {
@@ -42,26 +43,24 @@ app.get("/", (_req, res) => {
   res.send("Ready!");
 });
 
-app.post("/upload", upload.single("FILE"), (req, res) => {
+app.post("/upload", upload.single(fieldName), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "Upload failed..." });
   }
 
-  // const fileName = req.file.originalname;
-
-  // req.on("close", () => {
-  //   console.log(`req aborted: ${fileName}`);
-  // });
-
-  // if (fileName === "1.png") {
-  //   return res.status(400).json({ message: "Upload failed..." });
-  // }
+  if (req.file.originalname === "test-1.txt") {
+    return res.status(500).json({ message: "Sorry, something went wrong..." });
+  }
 
   return res.status(200).json({ message: "Uploaded successfully!" });
 });
 
 app.delete("/delete", (req, res) => {
   const fileName = req.body.fileName;
+
+  if (fileName === "test-2.txt") {
+    return res.status(500).json({ message: "Sorry, something went wrong..." });
+  }
 
   fs.unlink(path.join(storagePath, fileName), (err) => {
     if (err) {
